@@ -7,8 +7,6 @@ from player import SimplePlayer
 
 def main(host: str = 'localhost', port: int = 5000, log_file: bool= False) -> None:
     """Main entry point for the poker bot runner."""
-    host = 'localhost'
-    port = 5000
     
     # Configure logger to write to a file
     if log_file:
