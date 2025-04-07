@@ -151,6 +151,7 @@ class Runner:
         """Handle game end message."""
         if self.bot and self.current_round:
             self.bot.on_end_game(self.current_round, message)
+            self.append_to_file("game_result.log", str(message))
         self.logger.info("Game ended")
         self.close()
 
@@ -313,6 +314,15 @@ class Runner:
             self.logger.info("Interrupted by user")
         finally:
             self.close()
+
+    def append_to_file(self, filename: str, data: str) -> None:
+        """Append data to a file."""
+        try:
+            with open(filename, 'a') as file:
+                file.write(data + '\n')
+            self.logger.info(f"Data appended to {filename}")
+        except Exception as e:
+            self.logger.error(f"Error writing to file {filename}: {e}")
 
     def close(self) -> None:
         """Close the connection to the server."""
