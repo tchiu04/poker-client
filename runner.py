@@ -13,7 +13,7 @@ class Runner:
     """
     Client runner that connects to a poker server and handles the game flow.
     """
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str, port: int, result_path: str):
         """
         Initialize the runner with connection details.
         
@@ -23,6 +23,7 @@ class Runner:
         """
         self.host = host
         self.port = port
+        self.result_path = result_path
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.bot = None
         self.current_round: Optional[RoundStateClient] = None
@@ -151,7 +152,7 @@ class Runner:
         """Handle game end message."""
         if self.bot and self.current_round:
             self.bot.on_end_game(self.current_round, message)
-            self.append_to_file("game_result.log", str(message))
+            self.append_to_file(self.result_path, str(message))
         self.logger.info("Game ended")
         self.close()
 
