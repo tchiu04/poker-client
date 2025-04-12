@@ -1,9 +1,9 @@
 import os
-from config import OUTPUT_DIR_CONTAINER
+from config import RESULT_FILE
 
 def main():
-    if os.path.exists(OUTPUT_DIR_CONTAINER) and os.path.isfile(OUTPUT_DIR_CONTAINER):
-        with open(OUTPUT_DIR_CONTAINER, 'r') as file:
+    if os.path.exists(RESULT_FILE) and os.path.isfile(RESULT_FILE):
+        with open(RESULT_FILE, 'r') as file:
             content = file.readlines()
         if len(content) > 0:
             print(int(content[0].strip()))
