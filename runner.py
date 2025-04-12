@@ -13,7 +13,7 @@ class Runner:
     """
     Client runner that connects to a poker server and handles the game flow.
     """
-    def __init__(self, host: str, port: int, result_path: str):
+    def __init__(self, host: str, port: int,  result_path: str, sim: bool = False) -> None:
         """
         Initialize the runner with connection details.
         
@@ -23,13 +23,20 @@ class Runner:
         """
         self.host = host
         self.port = port
-        self.result_path = result_path
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.bot = None
         self.current_round: Optional[RoundStateClient] = None
         self.player_id = None
         self.logger = self._setup_logger()
         self.player_money = START_MONEY
+
+        self.run_success = False
+        self.points = 0
+        self.result_path = result_path
+
+        # Simulation mode
+        self.sim = sim
+
 
     @staticmethod
     def _setup_logger():
@@ -43,6 +50,15 @@ class Runner:
         
         logger.addHandler(handler)
         return logger
+    
+    def get_score(self) -> int:
+        """
+        Get the score of the player.
+        
+        Returns:
+            int: Player's score
+        """
+        return self.points
 
     def set_bot(self, bot):
         """
@@ -152,7 +168,10 @@ class Runner:
         """Handle game end message."""
         if self.bot and self.current_round:
             self.bot.on_end_game(self.current_round, message)
-            self.append_to_file(self.result_path, str(message))
+            if not self.sim:
+                self.append_to_file(self.result_path, str(message))
+            self.points = int(message)
+            self.run_success = True
         self.logger.info("Game ended")
         self.close()
 
@@ -218,8 +237,6 @@ class Runner:
         # raise
         if action == 4:
             actual_raise = amount + self.current_round.player_bets[str(self.player_id)]
-
-            print("actual raise", actual_raise)
 
             if self.current_round and actual_raise >= self.current_round.current_bet:
                 return True
