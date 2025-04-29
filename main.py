@@ -7,7 +7,7 @@ import logging
 from player import SimplePlayer
 
 
-def main(host: str = 'localhost', port: int = 5000, log_file: bool= False, result_path=RESULT_FILE, simulation: bool = False, simulation_round: int = 6 ) -> None:
+def main(host: str = 'localhost', port: int = 5000, log_file: bool= False, result_path=RESULT_FILE, simulation: bool = False, simulation_round: int = 6, local: bool = False) -> None:
     """Main entry point for the poker bot runner."""
     
     # Configure logger to write to a file
@@ -17,6 +17,10 @@ def main(host: str = 'localhost', port: int = 5000, log_file: bool= False, resul
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
+
+    if local:
+        print("Running in local mode, saving results to local file")
+        result_path = 'game_result.log'
 
     if simulation:
         print(f"Running in simulation mode for {simulation_round} rounds")
@@ -57,10 +61,11 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--result', type=str, default=RESULT_FILE, help='File to save the result')
     parser.add_argument('-s', '--simulation', type=bool, default=False, help='Run in simulation mode')
     parser.add_argument('-sr', '--simulation_rounds', type=int, default=6, help='Number of rounds in simulation mode')
+    parser.add_argument('-l', '--local', type=bool, default=False, help='Run in local mode')
     args = parser.parse_args()
 
     # Run the main function with command line arguments
     try:
-        main(args.host, args.port, args.log_file, args.result, args.simulation, args.simulation_rounds)
+        main(args.host, args.port, args.log_file, args.result, args.simulation, args.simulation_rounds, args.local)
     except KeyboardInterrupt:
         print("\nExiting...")
