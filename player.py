@@ -1,4 +1,5 @@
 
+from typing import List
 from bot import Bot
 from type.poker_action import PokerAction
 from type.round_state import RoundStateClient
@@ -7,8 +8,9 @@ class SimplePlayer(Bot):
     def __init__(self):
         super().__init__()
 
-    def on_start(self, starting_chips: int):
+    def on_start(self, starting_chips: int, player_hands: List[str]):
         print("Player called on game start")
+        print("Player hands: ", player_hands)
 
     def on_round_start(self, round_state: RoundStateClient, remaining_chips: int):
         print("Player called on round start")

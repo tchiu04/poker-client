@@ -113,10 +113,11 @@ class Runner:
         self.bot.set_id(self.player_id)
         self.logger.info(f"Connected with player ID: {self.player_id}")
 
-    def _handle_game_start(self, _: Any) -> None:
+    def _handle_game_start(self, message: Any) -> None:
         """Handle game start message."""
+        hands = message['hands']
         if self.bot:
-            self.bot.on_start(self.player_money)
+            self.bot.on_start(self.player_money, hands)
         self.logger.info("Game started")
 
     def _handle_game_state(self, message: dict) -> None:
