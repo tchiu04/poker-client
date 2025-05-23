@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 from type.round_state import RoundStateClient
 
@@ -14,7 +15,7 @@ class Bot(ABC):
         self.id = player_id
 
     @abstractmethod
-    def on_start(self, starting_chips: int):
+    def on_start(self, starting_chips: int, player_hands: List[str]):
         """ Called when the game starts. """
         pass
 
