@@ -15,7 +15,7 @@ class Bot(ABC):
         self.id = player_id
 
     @abstractmethod
-    def on_start(self, starting_chips: int, player_hands: List[str]):
+    def on_start(self, starting_chips: int, player_hands: List[str], blind: int):
         """ Called when the game starts. """
         pass
 

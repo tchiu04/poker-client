@@ -8,7 +8,7 @@ class SimplePlayer(Bot):
     def __init__(self):
         super().__init__()
 
-    def on_start(self, starting_chips: int, player_hands: List[str]):
+    def on_start(self, starting_chips: int, player_hands: List[str], blind: int):
         print("Player called on game start")
         print("Player hands: ", player_hands)
 
