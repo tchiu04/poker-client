@@ -1,14 +1,14 @@
 import argparse
 import os
 from time import sleep
-from config import RESULT_FILE
+from config import RESULT_FILE, DEFAULT_HOST, DEFAULT_PORT
 from runner import Runner
 import logging
 
 from player import SimplePlayer
 
 
-def main(host: str = 'localhost', port: int = 5000, log_file: bool= False, result_path=RESULT_FILE, simulation: bool = False, simulation_round: int = 6, local: bool = False) -> None:
+def main(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, log_file: bool= False, result_path=RESULT_FILE, simulation: bool = False, simulation_round: int = 6, local: bool = False) -> None:
     """Main entry point for the poker bot runner."""
     
     # Configure logger to write to a file
@@ -53,8 +53,8 @@ def main(host: str = 'localhost', port: int = 5000, log_file: bool= False, resul
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Poker Bot Runner")
-    parser.add_argument('-H', '--host', type=str, default='localhost', help='Server hostname or IP address')
-    parser.add_argument('-p', '--port', type=int, default=5000, help='Server port')
+    parser.add_argument('--host', type=str, default=DEFAULT_HOST, help='Server host')
+    parser.add_argument('--port', type=int, default=DEFAULT_PORT, help='Server port')
     parser.add_argument('-lf', '--log_file', type=bool, default=False, help='Log to file or console')
     parser.add_argument('-r', '--result', type=str, default=RESULT_FILE, help='File to save the result')
     parser.add_argument('-s', '--simulation', type=bool, default=False, help='Run in simulation mode')

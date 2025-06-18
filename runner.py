@@ -40,6 +40,12 @@ class Runner:
         # Multi-game support
         self.game_count = 0
         self.total_points = 0
+        
+        # Blind information
+        self.blind_amount = 0
+        self.is_small_blind = False
+        self.is_big_blind = False
+        self.blind_posted = False
 
     @staticmethod
     def _setup_logger():
@@ -137,9 +143,19 @@ class Runner:
     def _handle_game_start(self, message: Any) -> None:
         """Handle game start message."""
         hands = message['hands']
+        # Extract blind information from the message
+        self.blind_amount = message.get('blind_amount', 0)
+        self.is_small_blind = message.get('is_small_blind', False)
+        self.is_big_blind = message.get('is_big_blind', False)
+        self.blind_posted = False  # Reset blind posted flag for new game
+        
         if self.bot:
-            self.bot.on_start(self.player_money, hands)
-        self.logger.info(f"Game #{self.game_count + 1} started with {len(hands)} cards")
+            self.bot.on_start(self.player_money, hands, self.blind_amount)
+        self.logger.info(f"Game #{self.game_count + 1} started with {len(hands)} cards, blind: {self.blind_amount}")
+        if self.is_small_blind:
+            self.logger.info("This player is the small blind")
+        elif self.is_big_blind:
+            self.logger.info("This player is the big blind")
 
     def _handle_game_state(self, message: dict) -> None:
         """Update current game state."""
@@ -168,6 +184,23 @@ class Runner:
         if not self.bot or not self.current_round:
             self.logger.error("Can't get action: bot or round state not initialized")
             return
+        
+        # Check if this player needs to post a blind and hasn't done so yet
+        if not self.blind_posted and (self.is_small_blind or self.is_big_blind):
+            if self.is_small_blind:
+                blind_amount = self.blind_amount // 2
+                self.logger.info(f"Automatically posting small blind: {blind_amount}")
+                self.send_action_to_server(self.player_id, 4, blind_amount)  # raise action
+                self.player_money -= blind_amount
+                self.blind_posted = True
+                return
+            elif self.is_big_blind:
+                blind_amount = self.blind_amount
+                self.logger.info(f"Automatically posting big blind: {blind_amount}")
+                self.send_action_to_server(self.player_id, 4, blind_amount)  # raise action
+                self.player_money -= blind_amount
+                self.blind_posted = True
+                return
             
         action, amount = self.bot.get_action(self.current_round, self.player_money)
         self.logger.info(f"Bot action: {action.name}, amount: {amount}")
@@ -381,4 +414,9 @@ class Runner:
         self.player_money = START_MONEY
         self.points = 0
         self.game_count += 1
+        # Reset blind information for new game
+        self.blind_amount = 0
+        self.is_small_blind = False
+        self.is_big_blind = False
+        self.blind_posted = False
         self.logger.info(f"Reset for Game #{self.game_count}")
