@@ -36,7 +36,10 @@ class Runner:
 
         # Simulation mode
         self.sim = sim
-
+        
+        # Multi-game support
+        self.game_count = 0
+        self.total_points = 0
 
     @staticmethod
     def _setup_logger():
@@ -53,12 +56,30 @@ class Runner:
     
     def get_score(self) -> int:
         """
-        Get the score of the player.
+        Get the score of the current game.
         
         Returns:
-            int: Player's score
+            int: Player's current game score
         """
         return self.points
+
+    def get_total_score(self) -> int:
+        """
+        Get the total score across all games.
+        
+        Returns:
+            int: Player's total score across all games
+        """
+        return self.total_points
+
+    def get_game_count(self) -> int:
+        """
+        Get the number of games played.
+        
+        Returns:
+            int: Number of games played
+        """
+        return self.game_count
 
     def set_bot(self, bot):
         """
@@ -118,7 +139,7 @@ class Runner:
         hands = message['hands']
         if self.bot:
             self.bot.on_start(self.player_money, hands)
-        self.logger.info("Game started")
+        self.logger.info(f"Game #{self.game_count + 1} started with {len(hands)} cards")
 
     def _handle_game_state(self, message: dict) -> None:
         """Update current game state."""
@@ -170,11 +191,14 @@ class Runner:
         if self.bot and self.current_round:
             self.bot.on_end_game(self.current_round, message)
             if not self.sim:
-                self.append_to_file(self.result_path, str(message))
+                self.append_to_file(self.result_path, f"Game_{self.game_count + 1}: {str(message)}")
             self.points = int(message)
+            self.total_points += self.points
             self.run_success = True
-        self.logger.info("Game ended")
-        self.close()
+        self.logger.info(f"Game #{self.game_count + 1} ended with score: {self.points}")
+        
+        # Reset for next game instead of closing connection
+        self.reset_for_new_game()
 
     def handle_messages(self, message_data: str) -> None:
         """
@@ -350,3 +374,11 @@ class Runner:
             self.logger.info("Connection closed")
         except Exception as e:
             self.logger.error(f"Error closing connection: {e}")
+
+    def reset_for_new_game(self):
+        """Reset client state for a new game"""
+        self.current_round = None
+        self.player_money = START_MONEY
+        self.points = 0
+        self.game_count += 1
+        self.logger.info(f"Reset for Game #{self.game_count}")

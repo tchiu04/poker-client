@@ -1,4 +1,5 @@
 import argparse
+import os
 from time import sleep
 from config import RESULT_FILE
 from runner import Runner
@@ -17,34 +18,31 @@ def main(host: str = 'localhost', port: int = 5000, log_file: bool= False, resul
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
+    
+    # clear the result file
+    if os.path.exists(result_path):
+        os.remove(result_path)
 
     if local:
         print("Running in local mode, saving results to local file")
         result_path = 'game_result.log'
 
     if simulation:
-        print(f"Running in simulation mode for {simulation_round} rounds")
-        count = 0
-        total_score = 0
-        while count < simulation_round:
-            print(f"Running simulation round {count + 1}/{simulation_round}")
-            runner = Runner(host, port, result_path, simulation)
-            simple_bot = SimplePlayer()
-            runner.set_bot(simple_bot)
-            runner.run()
-            runner.close()
-
-            score = runner.get_score()
-            total_score += score
-
-            sleep(0.1)
-            if runner.run_success:
-                print(f"Simulation round {count + 1} completed successfully")
-                count += 1
-        print(f"Simulation completed. Total score: {total_score}")
-        print(f"Average score per round: {total_score / simulation_round}")
-
-        runner.append_to_file(result_path, str(int(total_score / simulation_round)))
+        print(f"Running in continuous simulation mode for {simulation_round} games")
+        # Create one runner that plays multiple games
+        runner = Runner(host, port, result_path, simulation)
+        simple_bot = SimplePlayer()
+        runner.set_bot(simple_bot)
+        runner.run()
+        
+        # Get final statistics
+        total_games = runner.get_game_count()
+        total_score = runner.get_total_score()
+        print(f"Continuous simulation completed. Total games played: {total_games}")
+        print(f"Total score: {total_score}")
+        if total_games > 0:
+            print(f"Average score per game: {total_score / total_games}")
+            runner.append_to_file(result_path, f"CONTINUOUS_MODE \n Games: {total_games}, \n Total: {total_score}, \n Average: {total_score / total_games}")
 
     else:
         runner = Runner(host, port, result_path, simulation)
