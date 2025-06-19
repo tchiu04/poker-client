@@ -149,9 +149,14 @@ class Runner:
         self.is_big_blind = message.get('is_big_blind', False)
         self.blind_posted = False  # Reset blind posted flag for new game
         
+        # Extract blind player IDs
+        small_blind_player_id = message.get('small_blind_player_id', None)
+        big_blind_player_id = message.get('big_blind_player_id', None)
+        
         if self.bot:
-            self.bot.on_start(self.player_money, hands, self.blind_amount)
+            self.bot.on_start(self.player_money, hands, self.blind_amount, big_blind_player_id, small_blind_player_id)
         self.logger.info(f"Game #{self.game_count + 1} started with {len(hands)} cards, blind: {self.blind_amount}")
+        self.logger.info(f"Small blind player: {small_blind_player_id}, Big blind player: {big_blind_player_id}")
         if self.is_small_blind:
             self.logger.info("This player is the small blind")
         elif self.is_big_blind:
