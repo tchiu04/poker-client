@@ -153,9 +153,13 @@ class Runner:
         small_blind_player_id = message.get('small_blind_player_id', None)
         big_blind_player_id = message.get('big_blind_player_id', None)
         
+        # Extract all players list
+        all_players = message.get('all_players', [])
+        
         if self.bot:
-            self.bot.on_start(self.player_money, hands, self.blind_amount, big_blind_player_id, small_blind_player_id)
+            self.bot.on_start(self.player_money, hands, self.blind_amount, big_blind_player_id, small_blind_player_id, all_players)
         self.logger.info(f"Game #{self.game_count + 1} started with {len(hands)} cards, blind: {self.blind_amount}")
+        self.logger.info(f"All players in game: {all_players}")
         self.logger.info(f"Small blind player: {small_blind_player_id}, Big blind player: {big_blind_player_id}")
         if self.is_small_blind:
             self.logger.info("This player is the small blind")
@@ -232,10 +236,14 @@ class Runner:
     def _handle_game_end(self, message: Any) -> None:
         """Handle game end message."""
         if self.bot and self.current_round:
-            self.bot.on_end_game(self.current_round, message)
+            player_score = message.get('player_score', 0)
+            all_scores = message.get('all_scores', {})
+            self.points = int(player_score)
+            self.logger.info(f"All final scores: {all_scores}")
             if not self.sim:
-                self.append_to_file(self.result_path, f"Game_{self.game_count + 1}: {str(message)}")
-            self.points = int(message)
+                self.append_to_file(self.result_path, f"Game_{self.game_count + 1}: Player score: {player_score}, All scores: {all_scores}")
+            
+            self.bot.on_end_game(self.current_round, player_score, all_scores)
             self.total_points += self.points
             self.run_success = True
         self.logger.info(f"Game #{self.game_count + 1} ended with score: {self.points}")
