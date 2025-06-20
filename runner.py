@@ -175,8 +175,13 @@ class Runner:
             player_actions=message['player_actions'],
             min_raise=message['min_raise'],
             max_raise=message['max_raise'],
+            side_pots=message.get('side_pots', [])
         )
         self.logger.debug(f"Updated game state: round {message['round_num']}")
+        if message.get('side_pots'):
+            self.logger.info(f"Side pots active: {len(message['side_pots'])} pot(s)")
+            for i, pot in enumerate(message['side_pots']):
+                self.logger.info(f"  Pot {i}: {pot['amount']} chips, eligible players: {pot['eligible_players']}")
 
     def _handle_round_start(self, _: Any) -> None:
         """Handle round start message."""

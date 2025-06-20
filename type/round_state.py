@@ -12,3 +12,4 @@ class RoundStateClient:
     max_raise: int
     player_bets: dict[int, int]
     player_actions: dict[int, str]
+    side_pots: list[dict[str, any]] = None  # List of dicts with 'amount' and 'eligible_players' keys
