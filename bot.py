@@ -35,6 +35,6 @@ class Bot(ABC):
         pass
 
     @abstractmethod
-    def on_end_game(self, round_state: RoundStateClient, player_score: float, all_scores: dict):
+    def on_end_game(self, round_state: RoundStateClient, player_score: float, all_scores: dict, active_players_hands: dict):
         """ Called at the end of the game. """
         pass

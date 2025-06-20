@@ -43,6 +43,7 @@ class SimplePlayer(Bot):
         """ Called at the end of the round. """
         print("Player called on end round")
 
-    def on_end_game(self, round_state: RoundStateClient, player_score: float, all_scores: dict):
+    def on_end_game(self, round_state: RoundStateClient, player_score: float, all_scores: dict, active_players_hands: dict):
         print("Player called on end game, with player score: ", player_score)
         print("All final scores: ", all_scores)
+        print("Active players hands: ", active_players_hands)

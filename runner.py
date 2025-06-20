@@ -238,12 +238,14 @@ class Runner:
         if self.bot and self.current_round:
             player_score = message.get('player_score', 0)
             all_scores = message.get('all_scores', {})
+            active_players_hands = message.get('active_players_hands', {})
             self.points = int(player_score)
             self.logger.info(f"All final scores: {all_scores}")
+            self.logger.info(f"Active players hands: {active_players_hands}")
             if not self.sim:
                 self.append_to_file(self.result_path, f"Game_{self.game_count + 1}: Player score: {player_score}, All scores: {all_scores}")
             
-            self.bot.on_end_game(self.current_round, player_score, all_scores)
+            self.bot.on_end_game(self.current_round, player_score, all_scores, active_players_hands)
             self.total_points += self.points
             self.run_success = True
         self.logger.info(f"Game #{self.game_count + 1} ended with score: {self.points}")
