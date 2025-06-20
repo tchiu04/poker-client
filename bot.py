@@ -15,7 +15,7 @@ class Bot(ABC):
         self.id = player_id
 
     @abstractmethod
-    def on_start(self, starting_chips: int, player_hands: List[str], blind_amount: int, big_blind_player_id: int, small_blind_player_id: int):
+    def on_start(self, starting_chips: int, player_hands: List[str], blind_amount: int, big_blind_player_id: int, small_blind_player_id: int, all_players: List[int]):
         """ Called when the game starts. """
         pass
 
@@ -35,6 +35,6 @@ class Bot(ABC):
         pass
 
     @abstractmethod
-    def on_end_game(self, round_state: RoundStateClient, score: float):
+    def on_end_game(self, round_state: RoundStateClient, player_score: float, all_scores: dict, active_players_hands: dict):
         """ Called at the end of the game. """
         pass

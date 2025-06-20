@@ -5,7 +5,7 @@ from player import SimplePlayer
 
 p = SimplePlayer()
 
-p.on_start(1000, ["As", "Kd"], 10, 2, 1)
+p.on_start(1000, ["As", "Kd"], 10, 2, 1, [1, 2, 3])
 
 # Test on_round_start
 from type.round_state import RoundStateClient
@@ -35,4 +35,4 @@ print(f"Player action: {action}")
 p.on_end_round(round_state, 200)
 
 # Test on_game_end
-p.on_end_game(round_state, 50)  # Test with a score of 50
+p.on_end_game(round_state, 50, {1: 50, 2: -25, 3: -25})  # Test with player score and all scores
