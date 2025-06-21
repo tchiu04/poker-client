@@ -28,7 +28,9 @@ class Runner:
         self.current_round: Optional[RoundStateClient] = None
         self.player_id = None
         self.logger = self._setup_logger()
+        self.initial_money = START_MONEY
         self.player_money = START_MONEY
+        self.player_delta = 0  # Track cumulative delta (change from initial money)
 
         self.run_success = False
         self.points = 0
@@ -167,36 +169,34 @@ class Runner:
             self.logger.info("This player is the big blind")
 
     def _handle_game_state(self, message: dict) -> None:
-        """Update current game state."""
-        self.current_round = RoundStateClient(
-            round=message['round'],
-            round_num=message['round_num'],
-            community_cards=message['community_cards'],
-            pot=message['pot'],
-            current_player=message['current_player'],
-            current_bet=message['current_bet'],
-            player_bets=message['player_bets'],
-            player_actions=message['player_actions'],
-            min_raise=message['min_raise'],
-            max_raise=message['max_raise'],
-            side_pots=message.get('side_pots', [])
-        )
-        self.logger.debug(f"Updated game state: round {message['round_num']}")
-        if message.get('side_pots'):
-            self.logger.info(f"Side pots active: {len(message['side_pots'])} pot(s)")
-            for i, pot in enumerate(message['side_pots']):
-                self.logger.info(f"  Pot {i}: {pot['amount']} chips, eligible players: {pot['eligible_players']}")
+        """Handle game state message."""
+        if self.bot:
+            # Update player money from server if available
+            if 'player_money' in message and message['player_money'] and str(self.player_id) in message['player_money']:
+                server_money = message['player_money'][str(self.player_id)]
+                if server_money != self.player_money:
+                    self.logger.info(f"Updating money from server: {self.player_money} -> {server_money}")
+                    self.player_money = server_money
+                    # Recalculate delta based on server money
+                    self.player_delta = self.player_money - self.initial_money
+            
+            self.current_round = RoundStateClient.from_message(message)
+            self.logger.debug(f"Updated game state: round {message['round_num']}")
+            if message.get('side_pots'):
+                self.logger.info(f"Side pots active: {len(message['side_pots'])} pot(s)")
+                for i, pot in enumerate(message['side_pots']):
+                    self.logger.info(f"  Pot {i}: {pot['amount']} chips, eligible players: {pot['eligible_players']}")
 
     def _handle_round_start(self, _: Any) -> None:
         """Handle round start message."""
         if self.bot and self.current_round:
             self.bot.on_round_start(self.current_round, self.player_money)
-        self.logger.info(f"Round {self.current_round.round_num if self.current_round else 'unknown'} started")
+        self.logger.info("Round started")
 
     def _handle_request_action(self, _: Any) -> None:
         """Handle request for player action."""
         if not self.bot or not self.current_round:
-            self.logger.error("Can't get action: bot or round state not initialized")
+            self.logger.error("No bot or current round available")
             return
         
         # Check if this player needs to post a blind and hasn't done so yet
@@ -245,6 +245,13 @@ class Runner:
             if not self.sim:
                 self.append_to_file(self.result_path, f"Game_{self.game_count + 1}: Player score: {player_score}, All scores: {all_scores}")
             
+            # Update player delta and money based on game result using delta approach
+            old_delta = self.player_delta
+            self.player_delta += player_score
+            old_money = self.player_money
+            self.player_money = self.initial_money + self.player_delta
+            self.logger.info(f"Delta updated: {old_delta} + {player_score} = {self.player_delta}, money: {old_money} -> {self.player_money}")
+            
             self.bot.on_end_game(self.current_round, player_score, all_scores, active_players_hands)
             self.total_points += self.points
             self.run_success = True
@@ -288,20 +295,24 @@ class Runner:
             self.logger.error("Invalid amount: cannot be negative")
             return False
         
-        if amount > self.player_money:
-            self.logger.error("Invalid amount: exceeds player money")
-
-        # fold
+        # fold - always valid, even with no money
         if action == 1:
             return True
         
-        # check
+        # check - always valid if current bet is zero
         if action == 2:
             if self.current_round and self.current_round.current_bet == 0:
                 return True
             else:
                 self.logger.error("Invalid check action: current bet is not zero")
                 return False
+
+        # For actions that require money, check if player has enough
+        if amount > self.player_money:
+            self.logger.warning(f"Player doesn't have enough money for action: needs {amount}, has {self.player_money}")
+            # Allow the action to proceed - the server will handle insufficient funds
+            # This allows for all-in scenarios where player bets all they have
+            return True
 
         # call    
         if action == 3:
@@ -330,7 +341,7 @@ class Runner:
                 self.logger.error("Invalid all-in action: amount does not match player money")
                 return False
             
-        
+        return True
 
     def send_action_to_server(self, player_id: str, action: int, amount: int) -> None:
         """
@@ -431,7 +442,9 @@ class Runner:
     def reset_for_new_game(self):
         """Reset client state for a new game"""
         self.current_round = None
-        self.player_money = START_MONEY
+        # Don't reset player_money or player_delta - keep them from previous game
+        # self.player_money = START_MONEY  # Removed this line
+        # self.player_delta = 0  # Removed this line
         self.points = 0
         self.game_count += 1
         # Reset blind information for new game
@@ -439,4 +452,4 @@ class Runner:
         self.is_small_blind = False
         self.is_big_blind = False
         self.blind_posted = False
-        self.logger.info(f"Reset for Game #{self.game_count}")
+        self.logger.info(f"Reset for Game #{self.game_count}, current money: {self.player_money}, delta: {self.player_delta}")
