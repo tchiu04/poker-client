@@ -1,38 +1,70 @@
 # python play_script.py
 # This script to test functionality of player class for our docker service
 
+import sys
+import os
+
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from player import SimplePlayer
-
-p = SimplePlayer()
-
-p.on_start(1000, ["As", "Kd"], 10, 2, 1, [1, 2, 3])
-
-# Test on_round_start
 from type.round_state import RoundStateClient
 
-# Create a sample round state
-round_state = RoundStateClient(
-    round="PREFLOP",
-    round_num=1,
-    community_cards=[],
-    pot=30,
-    current_player=1,
-    current_bet=10,
-    player_bets={1: 5, 2: 10},
-    player_actions={1: "CALL", 2: "RAISE"},
-    min_raise=20,
-    max_raise=990
-)
+def main():
+    """
+    A script to test the functionality of the SimplePlayer class.
+    """
+    
+    # --- Test Initialization ---
+    p = SimplePlayer()
+    player_id = 1
+    p.set_id(player_id)
 
-# Test on_round_start
-p.on_round_start(round_state, 990)
+    # --- Test on_start ---
+    p.on_start(
+        starting_chips=1000, 
+        player_hands=["As", "Kd"], 
+        blind_amount=10, 
+        big_blind_player_id=2, 
+        small_blind_player_id=1, 
+        all_players=[1, 2, 3]
+    )
 
-# Test get_action
-action = p.get_action(round_state, 990)
-print(f"Player action: {action}")
+    # --- Create a sample round state for testing ---
+    round_state_data = {
+        "round": "PREFLOP",
+        "round_num": 1,
+        "community_cards": [],
+        "pot": 30,
+        "current_player": player_id,
+        "current_bet": 20,
+        "player_bets": {str(player_id): 10, "2": 20, "3": 0},
+        "player_actions": {str(player_id): "RAISE", "2": "RAISE", "3": "WAIT"},
+        "player_money": {str(player_id): 990, "2": 980, "3": 1000},
+        "min_raise": 20,
+        "max_raise": 980,
+        "side_pots": []
+    }
+    round_state = RoundStateClient.from_message(round_state_data)
+    
+    # --- Test on_round_start ---
+    p.on_round_start(round_state, 990)
 
-# Test on_round_end
-p.on_end_round(round_state, 200)
+    # --- Test get_action ---
+    _ , _ = p.get_action(round_state, 990)
 
-# Test on_game_end
-p.on_end_game(round_state, 50, {1: 50, 2: -25, 3: -25})  # Test with player score and all scores
+    # --- Test on_end_round ---
+    p.on_end_round(round_state, 980)
+
+    # --- Test on_end_game ---
+    p.on_end_game(
+        round_state=round_state, 
+        player_score=50, 
+        all_scores={1: 50, 2: -25, 3: -25},
+        active_players_hands={1: ["As", "Kd"], 2: ["7h", "8h"]}
+    )
+    
+
+
+if __name__ == "__main__":
+    main()
