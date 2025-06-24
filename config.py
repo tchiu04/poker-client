@@ -10,9 +10,8 @@ LOCAL_BASE_PATH = "output"
 # Use appropriate base path based on environment
 BASE_PATH = DOCKER_BASE_PATH if IS_DOCKER else LOCAL_BASE_PATH
 
-# Ensure local output directory exists
-if not IS_DOCKER:
-    os.makedirs(BASE_PATH, exist_ok=True)
+# Ensure output directory exists in all environments
+os.makedirs(BASE_PATH, exist_ok=True)
 
 # Network configuration
 DEFAULT_HOST = 'localhost'

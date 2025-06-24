@@ -242,8 +242,8 @@ class Runner:
             self.points = int(player_score)
             self.logger.info(f"All final scores: {all_scores}")
             self.logger.info(f"Active players hands: {active_players_hands}")
-            if not self.sim:
-                self.append_to_file(self.result_path, f"Game_{self.game_count + 1}: Player score: {player_score}, All scores: {all_scores}")
+            # Always log game results regardless of simulation mode
+            self.append_to_file(self.result_path, f"Game_{self.game_count + 1}: Player score: {player_score}, All scores: {all_scores}")
             
             # Update player delta and money based on game result using delta approach
             old_delta = self.player_delta
