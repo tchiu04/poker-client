@@ -364,28 +364,17 @@ class Runner:
             self.logger.error(f"Failed to send action: {e}")
 
     def receive_messages(self) -> None:
-        """Continuously receive messages from the server."""
-        buffer = ""
-        
+        """Receive and process messages from the server."""
+        sock_file = self.client_socket.makefile('r')
         while True:
             try:
-                data = self.client_socket.recv(4096).decode('utf-8')
-                if not data:
+                line = sock_file.readline()
+                if not line:
                     self.logger.info("Server closed connection")
                     break
-                    
-                buffer += data
-                
-                # Handle potentially multiple messages in the buffer
-                self.handle_messages(buffer)
-                buffer = ""  # Clear buffer after processing
-                
-            except socket.error as e:
-                self.logger.error(f"Socket error: {e}")
-                break
+                self.handle_messages(line.strip())
             except Exception as e:
-                self.logger.exception(f"Error receiving message: {e}")
-                break
+                self.logger.error(f"Error decoding message: {e}")
 
     def connect(self) -> bool:
         """
