@@ -369,7 +369,7 @@ class Runner:
         
         while True:
             try:
-                data = self.client_socket.recv(4096).decode('utf-8')
+                data = self.client_socket.recv(16384).decode('utf-8')
                 if not data:
                     self.logger.info("Server closed connection")
                     break
