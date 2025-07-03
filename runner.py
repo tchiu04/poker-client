@@ -53,13 +53,9 @@ class Runner:
     def _setup_logger():
         """Set up logging configuration."""
         logger = logging.getLogger('PokerRunner')
-        logger.setLevel(logging.INFO)
         
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        
-        logger.addHandler(handler)
+        # Always use the root logger configuration set up by main.py
+        # This ensures consistent dual logging (console + file)
         return logger
     
     def get_score(self) -> int:

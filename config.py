@@ -19,3 +19,6 @@ DEFAULT_PORT = 5000
 
 START_MONEY = 10000
 RESULT_FILE = os.path.join(BASE_PATH, 'game_result.log')
+
+# Logging configuration
+CLIENT_LOG_FILE = os.path.join(BASE_PATH, 'poker_client.log')
