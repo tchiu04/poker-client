@@ -5,7 +5,7 @@ from typing import Optional, Any
 
 from type.utils import get_message_type_name
 
-from config import START_MONEY
+from config import START_MONEY, GAMEID_LOG_FILE
 from type.message import MessageType
 from type.round_state import RoundStateClient
 
@@ -137,6 +137,9 @@ class Runner:
         self.player_id = message
         self.bot.set_id(self.player_id)
         self.logger.info(f"Connected with player ID: {self.player_id}")
+        
+        # Log player ID to gameid.log file
+        self.write_to_file(GAMEID_LOG_FILE, f"Player connected: {self.player_id}")
 
     def _handle_game_start(self, message: Any) -> None:
         """Handle game start message."""
@@ -163,7 +166,7 @@ class Runner:
             self.logger.info("This player is the small blind")
         elif self.is_big_blind:
             self.logger.info("This player is the big blind")
-
+            
     def _handle_game_state(self, message: dict) -> None:
         """Handle game state message."""
         if self.bot:
@@ -413,6 +416,15 @@ class Runner:
             with open(filename, 'a') as file:
                 file.write(data + '\n')
             self.logger.info(f"Data appended to {filename}")
+        except Exception as e:
+            self.logger.error(f"Error writing to file {filename}: {e}")
+
+    def write_to_file(self, filename: str, data: str) -> None:
+        """Overwrite data to a file."""
+        try:
+            with open(filename, 'w') as file:
+                file.write(data + '\n')
+            self.logger.info(f"Data written to {filename}")
         except Exception as e:
             self.logger.error(f"Error writing to file {filename}: {e}")
 

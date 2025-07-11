@@ -15,6 +15,7 @@ class SimplePlayer(Bot):
         print("Big blind player id: ", big_blind_player_id)
         print("Small blind player id: ", small_blind_player_id)
         print("All players in game: ", all_players)
+        print("My id: ", self.id)
 
     def on_round_start(self, round_state: RoundStateClient, remaining_chips: int):
         print("Player called on round start")
