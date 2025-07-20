@@ -3,18 +3,18 @@ from typing import Dict, List, Any
 
 @dataclass
 class RoundStateClient:
-    round_num: int
-    round: str
-    community_cards: list
-    pot: int
-    current_player: int
-    current_bet: int
-    min_raise: int
-    max_raise: int
-    player_bets: dict[int, int]
-    player_actions: dict[int, str]
-    player_money: dict[int, int] = None  # New field for player money
-    side_pots: list[dict[str, any]] = None  # List of dicts with 'amount' and 'eligible_players' keys
+    round_num: int # The number of the current round
+    round: str # The type of round (preflop, flop, turn, river)
+    community_cards: List[str] # The community cards
+    pot: int # The total pot
+    current_player: List[int] # The ids of the current players
+    current_bet: int # The current bet
+    min_raise: int # The minimum raise amount
+    max_raise: int # The maximum raise amount
+    player_bets: Dict[str, int] # The bets of the players
+    player_actions: Dict[str, str] # The actions of the players
+    player_money: Dict[str, int] = None  # The money of the players
+    side_pots: List[Dict[str, Any]] = None  # The side pots
     
     @classmethod
     def from_message(cls, message: Dict[str, Any]) -> 'RoundStateClient':
