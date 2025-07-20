@@ -1,5 +1,5 @@
 
-from typing import List
+from typing import List, Tuple
 from bot import Bot
 from type.poker_action import PokerAction
 from type.round_state import RoundStateClient
@@ -21,7 +21,7 @@ class SimplePlayer(Bot):
         print("Player called on round start")
         print("Round state: ", round_state)
 
-    def get_action(self, round_state: RoundStateClient, remaining_chips: int):
+    def get_action(self, round_state: RoundStateClient, remaining_chips: int) -> Tuple[PokerAction, int]:
         """ Returns the action for the player. """
         print("Player called get action")
 
