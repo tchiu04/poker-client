@@ -331,11 +331,8 @@ class Runner:
         if action == 3:
             if self.current_round:
                 actual_call_amount = self.current_round.current_bet - self.current_round.player_bets[str(self.player_id)]
-                if actual_call_amount > 0 and actual_call_amount <= self.player_money:
+                if actual_call_amount >= 0 and actual_call_amount <= self.player_money:
                     return True
-                elif actual_call_amount <= 0:
-                    self.logger.error("Invalid call action: no amount to call")
-                    return False
                 else:
                     self.logger.error(f"Invalid call action: cannot afford {actual_call_amount}, have {self.player_money}")
                     return False
