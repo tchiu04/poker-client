@@ -37,8 +37,8 @@ class SimplePlayer(Bot):
         if round_state.current_bet == 0:
             return PokerAction.CHECK, 0
         
-        amount_to_call = round_state.current_bet - round_state.player_bets[str(self.id)]
-        return PokerAction.CALL, amount_to_call
+        # Player just indicates intent to call with amount 0
+        return PokerAction.CALL, 0
 
     def on_end_round(self, round_state: RoundStateClient, remaining_chips: int):
         """ Called at the end of the round. """

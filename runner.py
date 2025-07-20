@@ -223,8 +223,16 @@ class Runner:
             # punish the bot for invalid action
             self.send_action_to_server(self.player_id, 1, 0)  # fold
             return
-        self.send_action_to_server(self.player_id, action.value, amount)
-        self.player_money -= amount
+        # For CALL actions, send 0 to server (server calculates) but track actual amount locally
+        if action.value == 3:  # CALL
+            # Calculate actual call amount for local money tracking
+            actual_call_amount = self.current_round.current_bet - self.current_round.player_bets[str(self.player_id)]
+            self.send_action_to_server(self.player_id, action.value, actual_call_amount)  # Send 0 to server
+            self.player_money -= actual_call_amount  # Deduct actual amount locally
+        else:
+            # For other actions, send the amount and deduct locally
+            self.send_action_to_server(self.player_id, action.value, amount)
+            self.player_money -= amount
 
     def _handle_round_end(self, _: Any) -> None:
         """Handle round end message."""
@@ -313,14 +321,19 @@ class Runner:
             # This allows for all-in scenarios where player bets all they have
             return True
 
-        # call    
+        # call - validate that player can afford the actual call amount
         if action == 3:
-            needed_call = self.current_round.current_bet - self.current_round.player_bets[str(self.player_id)]
-            if self.current_round and amount == needed_call and needed_call > 0:
-                return True
-            else:
-                self.logger.error("Invalid call action: amount does not match current bet")
-                return False
+            if self.current_round:
+                actual_call_amount = self.current_round.current_bet - self.current_round.player_bets[str(self.player_id)]
+                if actual_call_amount > 0 and actual_call_amount <= self.player_money:
+                    return True
+                elif actual_call_amount <= 0:
+                    self.logger.error("Invalid call action: no amount to call")
+                    return False
+                else:
+                    self.logger.error(f"Invalid call action: cannot afford {actual_call_amount}, have {self.player_money}")
+                    return False
+            return False
             
         # raise
         if action == 4:
