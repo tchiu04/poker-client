@@ -223,12 +223,18 @@ class Runner:
             # punish the bot for invalid action
             self.send_action_to_server(self.player_id, 1, 0)  # fold
             return
-        # For CALL actions, send 0 to server (server calculates) but track actual amount locally
+        # For CALL actions, calculate actual call amount and send to server
         if action.value == 3:  # CALL
             # Calculate actual call amount for local money tracking
             actual_call_amount = self.current_round.current_bet - self.current_round.player_bets[str(self.player_id)]
-            self.send_action_to_server(self.player_id, action.value, actual_call_amount)  # Send 0 to server
+            self.send_action_to_server(self.player_id, action.value, actual_call_amount)
             self.player_money -= actual_call_amount  # Deduct actual amount locally
+        # For ALL_IN actions, calculate actual all-in amount and send to server
+        elif action.value == 5:  # ALL_IN
+            # All-in amount is the player's remaining money
+            actual_allin_amount = self.player_money
+            self.send_action_to_server(self.player_id, action.value, actual_allin_amount)
+            self.player_money -= actual_allin_amount  # Deduct actual amount locally
         else:
             # For other actions, send the amount and deduct locally
             self.send_action_to_server(self.player_id, action.value, amount)
@@ -345,12 +351,12 @@ class Runner:
                 self.logger.error("Invalid raise action: amount out of range")
                 return False
             
-        # all in
+        # all in - validate that player has money to go all-in
         if action == 5:
-            if self.current_round and amount == self.player_money:
+            if self.current_round and self.player_money > 0:
                 return True
             else:
-                self.logger.error("Invalid all-in action: amount does not match player money")
+                self.logger.error("Invalid all-in action: player has no money")
                 return False
             
         return True
